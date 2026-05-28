@@ -43,7 +43,7 @@ github-profile-analyzer/
 ### 1. Clone & Install
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/AryanPande01/github-profile-analyzer-api.git
 cd github-profile-analyzer
 npm install
 ```
