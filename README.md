@@ -4,20 +4,58 @@ A Node.js + Express backend service that fetches a GitHub user's public profile,
 
 ---
 
+# Live Deployment
+
+Base URL:
+https://github-profile-analyzer-api-ggym.onrender.com
+
+## Example Endpoints
+
+### GET All Profiles
+
+https://github-profile-analyzer-api-ggym.onrender.com/api/profiles
+
+### GET Single Profile
+
+https://github-profile-analyzer-api-ggym.onrender.com/api/profiles/torvalds
+
+### POST Analyze Profile
+
+```bash
+curl -X POST https://github-profile-analyzer-api-ggym.onrender.com/api/profiles/analyze/torvalds
+```
+
+---
+
+# Repository
+
+GitHub Repo:
+https://github.com/AryanPande01/github-profile-analyzer-api
+
+---
+
 ## Tech Stack
-- **Node.js** + **Express.js** — REST API server
-- **MySQL** (via `mysql2`) — persistent storage with a connection pool
-- **GitHub REST API** — profile & repository data source
-- **express-validator** — input validation
-- **express-rate-limit** — abuse protection
-- **axios** — HTTP client
+
+* **Node.js** + **Express.js** — REST API server
+* **MySQL** (via `mysql2`) — persistent storage with a connection pool
+* **GitHub REST API** — profile & repository data source
+* **express-validator** — input validation
+* **express-rate-limit** — abuse protection
+* **axios** — HTTP client
+
+---
+
+## Deployment
+
+* Backend Hosted on Render
+* MySQL Database Hosted on Railway
 
 ---
 
 ## Project Structure
 
-```
-github-profile-analyzer/
+```text
+github-profile-analyzer-api/
 ├── src/
 │   ├── index.js                    # App entry point
 │   ├── config/
@@ -33,6 +71,7 @@ github-profile-analyzer/
 │       └── validate.js             # express-validator error handler
 ├── .env.example
 ├── package.json
+├── schema.sql
 └── README.md
 ```
 
@@ -44,9 +83,11 @@ github-profile-analyzer/
 
 ```bash
 git clone https://github.com/AryanPande01/github-profile-analyzer-api.git
-cd github-profile-analyzer
+cd github-profile-analyzer-api
 npm install
 ```
+
+---
 
 ### 2. Configure Environment
 
@@ -70,7 +111,9 @@ DB_NAME=github_analyzer
 GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
 ```
 
-> **Get a GitHub token**: GitHub → Settings → Developer settings → Personal access tokens → Generate new token (no special scopes needed for public data)
+> Get a GitHub token: GitHub → Settings → Developer settings → Personal access tokens → Generate new token (no special scopes needed for public data)
+
+---
 
 ### 3. Create MySQL Database
 
@@ -78,7 +121,9 @@ GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
 CREATE DATABASE github_analyzer CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-The `profiles` table is created **automatically** when the server starts.
+The `profiles` table is created automatically when the server starts.
+
+---
 
 ### 4. Run
 
@@ -95,11 +140,17 @@ npm start
 ## API Reference
 
 ### Base URL
-`http://localhost:3000`
+
+Local:
+http://localhost:3000
+
+Production:
+https://github-profile-analyzer-api-ggym.onrender.com
 
 ---
 
 ### `GET /`
+
 Returns service info and available endpoints.
 
 ---
@@ -108,12 +159,14 @@ Returns service info and available endpoints.
 
 Fetches the GitHub profile for `:username`, computes insights across all public repos, and stores/updates the result in MySQL.
 
-**Example:**
+#### Example
+
 ```bash
-curl -X POST http://localhost:3000/api/profiles/analyze/torvalds
+curl -X POST https://github-profile-analyzer-api-ggym.onrender.com/api/profiles/analyze/torvalds
 ```
 
-**Response:**
+#### Example Response
+
 ```json
 {
   "success": true,
@@ -124,9 +177,13 @@ curl -X POST http://localhost:3000/api/profiles/analyze/torvalds
     "followers": 230000,
     "public_repos": 7,
     "total_stars": 210000,
-    "top_languages": [{"lang": "C", "count": 4}],
-    "most_starred_repo": "linux",
-    ...
+    "top_languages": [
+      {
+        "lang": "C",
+        "count": 4
+      }
+    ],
+    "most_starred_repo": "linux"
   }
 }
 ```
@@ -137,29 +194,32 @@ curl -X POST http://localhost:3000/api/profiles/analyze/torvalds
 
 Returns all stored profiles with pagination and sorting.
 
-| Query Param | Default       | Options                                                    |
-|-------------|---------------|------------------------------------------------------------|
-| `page`      | `1`           | Any positive integer                                       |
-| `limit`     | `20`          | 1–100                                                      |
+| Query Param | Default       | Options                                                                             |
+| ----------- | ------------- | ----------------------------------------------------------------------------------- |
+| `page`      | `1`           | Any positive integer                                                                |
+| `limit`     | `20`          | `1–100`                                                                             |
 | `sortBy`    | `analyzed_at` | `username`, `followers`, `total_stars`, `public_repos`, `analyzed_at`, `updated_at` |
-| `order`     | `DESC`        | `ASC`, `DESC`                                              |
+| `order`     | `DESC`        | `ASC`, `DESC`                                                                       |
 
-**Example:**
+#### Example
+
 ```bash
-curl "http://localhost:3000/api/profiles?sortBy=total_stars&order=DESC&limit=10"
+curl "https://github-profile-analyzer-api-ggym.onrender.com/api/profiles?sortBy=total_stars&order=DESC&limit=10"
 ```
 
 ---
 
 ### `GET /api/profiles/:username`
 
-Returns the stored insights for a single username.
+Returns stored insights for a single username.
+
+#### Example
 
 ```bash
-curl http://localhost:3000/api/profiles/torvalds
+curl https://github-profile-analyzer-api-ggym.onrender.com/api/profiles/torvalds
 ```
 
-Returns `404` if the profile hasn't been analyzed yet, with a helpful message pointing to the analyze endpoint.
+Returns `404` if the profile has not been analyzed yet.
 
 ---
 
@@ -167,47 +227,49 @@ Returns `404` if the profile hasn't been analyzed yet, with a helpful message po
 
 Removes a stored profile from the database.
 
+#### Example
+
 ```bash
-curl -X DELETE http://localhost:3000/api/profiles/torvalds
+curl -X DELETE https://github-profile-analyzer-api-ggym.onrender.com/api/profiles/torvalds
 ```
 
 ---
 
 ## Stored Insights
 
-| Field | Description |
-|-------|-------------|
-| `public_repos` | Total public repositories |
-| `public_gists` | Total public gists |
-| `followers` / `following` | Social graph size |
-| `total_stars` | Sum of ⭐ across all repos |
-| `total_forks` | Sum of forks across all repos |
-| `total_watchers` | Sum of watchers across all repos |
-| `avg_stars_per_repo` | Influence metric |
-| `most_starred_repo` | Name of their most popular repo |
-| `most_starred_repo_stars` | Star count of most popular repo |
-| `top_languages` | Top 5 programming languages (JSON array) |
-| `recently_active_repos` | Repos with commits in the last 6 months |
-| `original_repos` | Repos they created (not forks) |
-| `forked_repos` | Repos that are forks |
-| `account_age_days` | Days since GitHub account creation |
-| `has_website` | Whether they have a blog/website linked |
-| `hireable` | Their hireable flag |
-| `bio`, `location`, `company`, `twitter_username` | Profile metadata |
+| Field                                            | Description                             |
+| ------------------------------------------------ | --------------------------------------- |
+| `public_repos`                                   | Total public repositories               |
+| `public_gists`                                   | Total public gists                      |
+| `followers` / `following`                        | Social graph size                       |
+| `total_stars`                                    | Sum of stars across all repositories    |
+| `total_forks`                                    | Sum of forks across all repositories    |
+| `total_watchers`                                 | Sum of watchers across all repositories |
+| `avg_stars_per_repo`                             | Influence metric                        |
+| `most_starred_repo`                              | Most popular repository                 |
+| `most_starred_repo_stars`                        | Stars on most popular repository        |
+| `top_languages`                                  | Top 5 programming languages             |
+| `recently_active_repos`                          | Repositories updated in last 6 months   |
+| `original_repos`                                 | Non-fork repositories                   |
+| `forked_repos`                                   | Forked repositories                     |
+| `account_age_days`                               | GitHub account age                      |
+| `has_website`                                    | Whether user has linked website         |
+| `hireable`                                       | GitHub hireable flag                    |
+| `bio`, `location`, `company`, `twitter_username` | Additional metadata                     |
 
 ---
 
 ## Error Handling
 
-| HTTP Code | Cause |
-|-----------|-------|
-| `400` | Invalid username format |
-| `404` | GitHub user not found / profile not yet analyzed |
-| `429` | GitHub API rate limit hit (add `GITHUB_TOKEN` to fix) |
-| `500` | Internal server error |
+| HTTP Code | Cause                                        |
+| --------- | -------------------------------------------- |
+| `400`     | Invalid username format                      |
+| `404`     | GitHub user not found / profile not analyzed |
+| `429`     | GitHub API rate limit exceeded               |
+| `500`     | Internal server error                        |
 
 ---
 
 ## Rate Limiting
 
-The API enforces **100 requests per 15 minutes** per IP by default to prevent abuse.
+The API enforces **100 requests per 15 minutes per IP** by default to prevent abuse.
